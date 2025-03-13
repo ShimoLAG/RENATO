@@ -108,6 +108,11 @@ Sequence monad but ignores the result for next function
                 where
                   rest a = (do {f <- op; b <- p; rest (f a b)})
 
+> chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
+> chainl1 p op = p =>> \a -> rest =>> \a -> op =>> \f -> p =>> \b -> rest (f a b)  
+
+
+
  chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
  chainl1 p op = ?
 
