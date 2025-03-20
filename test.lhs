@@ -1,6 +1,6 @@
 import MonadicParsing
 
--- Define the data structure for logical expressions
+-- Define data structure
 data LExp
   = LVal Bool
   | Not LExp
@@ -8,44 +8,30 @@ data LExp
   | Or LExp LExp
   deriving Show
 
--- Parse 'T' as True and 'F' as False
-lval :: Parser LExp
-lval = (char 'T' ->> ret (LVal True))
-   <|> (char 'F' ->> ret (LVal False))
+-- Parsers for true/false literals
+lvalParser :: Parser LExp
+lvalParser = (char 'T' ->> ret (LVal True))
+         <|> (char 'F' ->> ret (LVal False))
 
--- Parse parentheses (e.g., (T | F))
-parens :: Parser LExp
-parens = do
-  _ <- char '('
-  e <- lexp
-  _ <- char ')'
-  ret e
+-- Parser for NOT expressions
+notParser :: Parser LExp
+notParser = (char '!' ->> parseLExp) =>> \e -> ret (Not e)
 
--- Parse Not (!e)
-notExp :: Parser LExp
-notExp = do
-  _ <- char '!'
-  e <- factor
-  ret (Not e)
+-- Parsers for AND and OR operators
+andParser :: Parser (LExp -> LExp -> LExp)
+andParser = (char '&' ->> ret And)
 
--- Factor: handles literals, not expressions, and parentheses
-factor :: Parser LExp
-factor = lval <|> notExp <|> parens
+orParser :: Parser (LExp -> LExp -> LExp)
+orParser = (char '|' ->> ret Or)
 
--- Parse conjunction (e1 & e2)
-andExp :: Parser LExp
-andExp = chainl1 factor (char '&' ->> ret And)
+-- Full expression parser combining everything
+parseLExp :: Parser LExp
+parseLExp = chainl1 term (orParser <|> andParser)
+  where
+    term = lvalParser <|> notParser
 
--- Parse disjunction (e1 | e2)
-orExp :: Parser LExp
-orExp = chainl1 andExp (char '|' ->> ret Or)
-
--- Parse the full logical expression
-lexp :: Parser LExp
-lexp = orExp
-
--- Wrap with space handling
+-- Convert parser to the requested type
 parse_lexp :: String -> LExp
-parse_lexp inp = case apply lexp inp of
-  [(res, "")] -> res
-  _           -> error "Invalid expression"
+parse_lexp s = case apply parseLExp s of
+  [(exp, "")] -> exp
+  _           -> error "Invalid expression!"
