@@ -1,4 +1,15 @@
-BExp ::=  expr '<=' BExp
+Goal :
+	write a parser that builds abstract syntax trees for boolean expressions
+
+Specific: 
+	1. Define the unambiguous grammar for the boolean expressions.
+
+
+    LExp :: = LExp '&&' BExp
+            | LExp '|' BExp
+            | 
+
+    BExp ::=  expr '<=' BExp
             | expr '==' BExp
             | expr '>=' BExp
             | expr '<' BExp
@@ -14,9 +25,26 @@ BExp ::=  expr '<=' BExp
        
     factor ::= '(' expr ')'
         | number
+    
 
     number ::= nat
 
     nat ::= digit {digit} # one or more digit (many1)
 
     nat ::= digit+
+	
+
+
+	2. Modify or extend the haskell data structure definition of the abstract syntax tree (BExp)
+
+> data BExp
+>    = Eq LExp
+>     | Lt LExp LExp
+>     | Gt LExp LExp
+>     | Le LExp LExp
+>     | Ge LExp LExp
+>     deriving Show 
+
+	3. Create a parser 'parse_bexp' with all of its parser components using the MonadicParsing library.
+
+The 'parse_bexp" will take the a boolean expression as string and outputs the abstract syntax tree BExp.
